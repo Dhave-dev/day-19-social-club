@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Social Club</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      cursor: none; /* hide default cursor */
+    }
+
+    /* ── Custom glow cursor ── */
+    #cursor-dot {
+      position: fixed;
+      top: 0; left: 0;
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      background: #fff;
+      pointer-events: none;
+      z-index: 99999;
+      transform: translate(-50%, -50%);
+      transition: background 0.6s ease, transform 0.12s ease;
+      mix-blend-mode: difference;
+    }
+    #cursor-glow {
+      position: fixed;
+      top: 0; left: 0;
+      width: 340px; height: 340px;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 99998;
+      transform: translate(-50%, -50%);
+      opacity: 0.18;
+      filter: blur(60px);
+      transition: background 0.7s ease;
+      will-change: transform;
+    }
+    /* Scale up glow dot on hoverable elements */
+    a:hover ~ #cursor-dot,
+    button:hover ~ #cursor-dot { transform: translate(-50%, -50%) scale(2.5); }
+
+    /* ═══════════════════════════════════════
+       LOADER
+    ═══════════════════════════════════════ */
+    #loader {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: #1A0E3C;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.9s cubic-bezier(0.4,0,0.2,1), visibility 0.9s;
+    }
+    #loader.done { opacity: 0; visibility: hidden; pointer-events: none; }
+
+    .loader-inner {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .loader-label {
+      font-size: 0.68rem;
+      font-weight: 500;
+      letter-spacing: 0.55em;
+      text-transform: uppercase;
+      color: #b8a9e8;
+      margin-bottom: 14px;
+      opacity: 0;
+      animation: l-fade 0.5s 0.1s ease forwards;
+    }
+    .loader-pct {
+      font-size: clamp(5rem, 16vw, 9.5rem);
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: -0.04em;
+      color: #ede9ff;
+      text-shadow: 0 0 40px rgba(100,240,255,0.18), 0 0 80px rgba(100,240,255,0.08);
+      margin-bottom: 28px;
+      opacity: 0;
+      animation: l-fade 0.5s 0.2s ease forwards;
+      position: relative; z-index: 1;
+    }
+    .loader-dots {
+      display: flex; gap: 9px;
+      opacity: 0;
+      animation: l-fade 0.5s 0.35s ease forwards;
+    }
+    .loader-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: rgba(180,160,240,0.3);
+      transition: background 0.35s, transform 0.35s, box-shadow 0.35s;
+    }
+    .loader-dot.active {
+      background: #c4b5fd;
+      transform: scale(1.35);
+      box-shadow: 0 0 8px rgba(196,181,253,0.7);
+    }
+    .loader-cursor {
+      position: absolute;
+      width: 28px; height: 28px;
+      pointer-events: none; z-index: 2;
+      opacity: 0;
+      animation: l-fade 0.4s 0.4s ease forwards, cursor-orbit 2s 0.4s cubic-bezier(0.45,0.05,0.55,0.95) infinite;
+      filter: drop-shadow(0 0 6px rgba(80,230,255,0.9)) drop-shadow(0 0 14px rgba(80,200,255,0.5));
+    }
+    @keyframes cursor-orbit {
+      0%   { transform: translate(52px,-18px) rotate(0deg); }
+      25%  { transform: translate(68px,  8px) rotate(5deg); }
+      50%  { transform: translate(44px, 24px) rotate(-3deg); }
+      75%  { transform: translate(18px,  4px) rotate(4deg); }
+      100% { transform: translate(52px,-18px) rotate(0deg); }
+    }
+    @keyframes l-fade { to { opacity: 1; } }
+
+    /* ═══════════════════════════════════════
+       SLIDES CONTAINER
+    ═══════════════════════════════════════ */
+    #slides {
+      position: relative;
+      width: 100vw; height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ── Individual slide ── */
+    .slide {
+      position: absolute;
+      inset: 0;
+      width: 100%; height: 100%;
+      overflow: hidden;
+      will-change: transform;
+      /* transforms and transitions are controlled entirely via inline styles by JS */
+    }
+
+    /* ═══════════════════════════════════════
+       SHARED HERO LAYOUT
+    ═══════════════════════════════════════ */
+    .hero {
+      position: relative;
+      width: 100%; height: 100%;
+      color: #fff;
+    }
+
+    .top-left {
+      position: absolute;
+      top: 40px; left: 48px;
+      font-size: 0.9rem; font-weight: 400;
+      color: rgba(255,255,255,0.9);
+    }
+    .top-right {
+      position: absolute;
+      top: 32px; right: 48px;
+      max-width: 360px;
+      text-align: right;
+      font-size: 0.85rem; line-height: 1.65;
+      color: rgba(255,255,255,0.85);
+    }
+    .char-wrap {
+      position: absolute;
+      left: 50%; top: 0;
+      transform: translateX(-50%);
+      height: 92%;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      z-index: 2;
+    }
+    .char-img {
+      height: 100%; width: auto;
+      object-fit: contain;
+      object-position: center top;
+      animation: float 7s ease-in-out infinite;
+      will-change: transform;
+    }
+    @keyframes float {
+      0%,100% { transform: translateY(0); }
+      50%      { transform: translateY(-14px); }
+    }
+    .hero-date {
+      position: absolute;
+      bottom: 218px; left: 44px;
+      font-size: 0.82rem; letter-spacing: 0.04em;
+      color: rgba(255,255,255,0.7);
+      z-index: 3;
+    }
+    .hero-title {
+      position: absolute;
+      bottom: -6px; left: 44px;
+      font-size: 110px;
+      font-weight: 900;
+      line-height: 0.9;
+      letter-spacing: -0.02em;
+      text-transform: uppercase;
+      color: #fff;
+      z-index: 1;
+    }
+
+    /* carousel pips removed */
+
+    /* ── VIEW button (shared structure) ── */
+    .view-btn {
+      position: absolute;
+      bottom: 48px; right: 48px;
+      z-index: 10;
+      display: flex;
+      padding: 7px 12px 7px 25px;
+      justify-content: center;
+      align-items: center;
+      gap: 14px;
+      border-radius: 100px;
+      cursor: pointer;
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      transition: transform 0.2s;
+    }
+    .view-btn:hover { transform: scale(1.04); }
+
+    .view-arrow {
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .view-arrow svg { width: 18px; height: 18px; }
+
+    /* ═══════════════════════════════════════
+       SLIDE 1 — PURPLE — ANNOYED PRINCESS
+    ═══════════════════════════════════════ */
+    #slide-1 { background: #1A0E3C; }
+
+    #slide-1 .char-img {
+      filter: drop-shadow(0 40px 80px rgba(100,60,200,0.35));
+    }
+    #slide-1 .view-btn {
+      color: #fff;
+      background: linear-gradient(352deg, #1A0E3C 7.28%, #441DB3 93.58%);
+      box-shadow:
+        0 0 0 3px #fff,
+        0 1px 2px 0 rgba(255,255,255,0.60) inset,
+        0 -2px 2px 0 rgba(255,255,255,0.10) inset;
+      border: none;
+    }
+    #slide-1 .view-arrow { background: #EAE4FF; }
+    #slide-1 .view-arrow svg path { stroke: #1A0E3C; }
+
+    /* ═══════════════════════════════════════
+       SLIDE 2 — GREEN — GENTLE PRINCESS
+    ═══════════════════════════════════════ */
+    #slide-2 { background: #0C6B52; }
+
+    #slide-2 .char-img {
+      filter: drop-shadow(0 40px 80px rgba(0,60,30,0.5));
+    }
+    #slide-2 .view-btn {
+      color: #fff;
+      background: linear-gradient(352deg, #0C6B52 7.28%, #1DB87A 93.58%);
+      box-shadow:
+        0 0 0 3px #fff,
+        0 1px 2px 0 rgba(255,255,255,0.60) inset,
+        0 -2px 2px 0 rgba(255,255,255,0.10) inset;
+      border: none;
+    }
+    #slide-2 .view-arrow { background: #DDF5EC; }
+    #slide-2 .view-arrow svg path { stroke: #0C6B52; }
+
+    /* ═══════════════════════════════════════
+       SLIDE 3 — TEAL — ANNOYED DOG
+    ═══════════════════════════════════════ */
+    #slide-3 { background: #1876A0; }
+
+    /* Dog: fixed at bottom, no float, no movement */
+    #slide-3 .char-wrap {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%) !important;
+      top: auto !important;
+      bottom: 0;
+      height: auto;
+      width: auto;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    #slide-3 .char-img {
+      height: 62vh;
+      width: auto;
+      max-width: 60vw;
+      object-fit: contain;
+      object-position: center bottom;
+      animation: none !important;   /* completely still */
+      transform: none !important;
+      filter: drop-shadow(0 20px 60px rgba(0,30,60,0.35));
+    }
+    #slide-3 .view-btn {
+      color: #fff;
+      background: linear-gradient(352deg, #1876A0 7.28%, #29B8E0 93.58%);
+      box-shadow:
+        0 0 0 3px #fff,
+        0 1px 2px 0 rgba(255,255,255,0.60) inset,
+        0 -2px 2px 0 rgba(255,255,255,0.10) inset;
+      border: none;
+    }
+    #slide-3 .view-arrow { background: #DCF2FA; }
+    #slide-3 .view-arrow svg path { stroke: #1876A0; }
+  </style>
+</head>
+<body>
+
+  <!-- ── Custom cursor ── -->
+  <div id="cursor-dot"></div>
+  <div id="cursor-glow"></div>
+
+  <!-- ═══ LOADER ═══ -->
+  <div id="loader">
+    <div class="loader-inner">
+      <span class="loader-label">Loading</span>
+      <div class="loader-pct" id="loader-pct">0%</div>
+      <svg class="loader-cursor" viewBox="0 0 28 28" fill="none">
+        <path d="M4 4L12.5 24L15.5 15.5L24 12.5L4 4Z"
+              fill="rgba(80,230,255,0.9)" stroke="rgba(180,240,255,0.6)" stroke-width="1"/>
+      </svg>
+      <div class="loader-dots">
+        <div class="loader-dot active" id="dot-0"></div>
+        <div class="loader-dot"        id="dot-1"></div>
+        <div class="loader-dot"        id="dot-2"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SLIDES ═══ -->
+  <div id="slides">
+
+    <!-- ── Slide 1: Purple / Annoyed Princess ── -->
+    <div class="slide active" id="slide-1">
+      <div class="hero">
+        <span class="top-left">The social club</span>
+        <p class="top-right">
+          Designed to clearly showcase Stirling Interiors'
+          commercial interior design, fit-out and refurbishment
+          services, with a focus on usability, clarity, and driving
+          high-quality enquiries.
+        </p>
+        <div class="char-wrap">
+          <img src="image 160.png" alt="Annoyed Princess" class="char-img" />
+        </div>
+        <span class="hero-date">23-04-26</span>
+        <h1 class="hero-title">Annoyed<br>Princess</h1>
+        <a class="view-btn" onclick="goTo(1); return false;" href="#">
+          <span>View</span>
+          <span class="view-arrow">
+            <svg viewBox="0 0 20 20" fill="none">
+              <path d="M5 10H15M10 5L15 10L10 15" stroke="#1A0E3C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+        </a>
+      </div>
+    </div>
+
+    <!-- ── Slide 2: Green / Gentle Princess ── -->
+    <div class="slide" id="slide-2">
+      <div class="hero">
+        <span class="top-left">The social club</span>
+        <p class="top-right">
+          Designed to clearly showcase Stirling Interiors'
+          commercial interior design, fit-out and refurbishment
+          services, with a focus on usability, clarity, and driving
+          high-quality enquiries.
+        </p>
+        <div class="char-wrap">
+          <img src="image 162.png" alt="Gentle Princess" class="char-img" />
+        </div>
+        <span class="hero-date">23-04-26</span>
+        <h1 class="hero-title">Gentle<br>Princess</h1>
+        <a class="view-btn" onclick="goTo(2); return false;" href="#">
+          <span>View</span>
+          <span class="view-arrow">
+            <svg viewBox="0 0 20 20" fill="none">
+              <path d="M5 10H15M10 5L15 10L10 15" stroke="#0C6B52" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+        </a>
+      </div>
+    </div>
+
+    <!-- ── Slide 3: Teal / Annoyed Dog ── -->
+    <div class="slide" id="slide-3">
+      <div class="hero">
+        <span class="top-left">The social club</span>
+        <p class="top-right">
+          Designed to clearly showcase Stirling Interiors'
+          commercial interior design, fit-out and refurbishment
+          services, with a focus on usability, clarity, and driving
+          high-quality enquiries.
+        </p>
+        <div class="char-wrap">
+          <img src="image 163.png" alt="Annoyed Dog" class="char-img" />
+        </div>
+        <span class="hero-date">23-04-26</span>
+        <h1 class="hero-title">Annoyed<br>Princess</h1>
+        <a class="view-btn" onclick="goTo((current+1)%N); return false;" href="#">
+          <span>View</span>
+          <span class="view-arrow">
+            <svg viewBox="0 0 20 20" fill="none">
+              <path d="M5 10H15M10 5L15 10L10 15" stroke="#1876A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+        </a>
+      </div>
+    </div>
+
+  </div><!-- /slides -->
+
+  <script>
+    /* ── Loader ─────────────────────────────────── */
+    (() => {
+      const loader  = document.getElementById('loader');
+      const pctEl   = document.getElementById('loader-pct');
+      const dots    = [0,1,2].map(i => document.getElementById('dot-' + i));
+      const DUR     = 2000;
+      const t0      = performance.now();
+      let activeDot = 0;
+
+      function ease(t) {
+        return t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2, 3)/2;
+      }
+
+      function tick(now) {
+        const raw   = Math.min((now - t0) / DUR, 1);
+        const pct   = Math.round(ease(raw) * 100);
+        pctEl.textContent = pct + '%';
+
+        const d = pct < 34 ? 0 : pct < 67 ? 1 : 2;
+        if (d !== activeDot) {
+          dots[activeDot].classList.remove('active');
+          dots[d].classList.add('active');
+          activeDot = d;
+        }
+
+        raw < 1 ? requestAnimationFrame(tick)
+                : setTimeout(() => loader.classList.add('done'), 160);
+      }
+
+      requestAnimationFrame(tick);
+    })();
+
+    /* ══════════════════════════════════════════
+       SLIDE ENGINE — book-page / stacking style
+       New page slides ON TOP of the current one.
+       Outgoing page stays still underneath.
+    ══════════════════════════════════════════ */
+    const slides  = Array.from(document.querySelectorAll('.slide'));
+    const N       = slides.length;
+    const DUR     = 980;
+    const EASE_FN = 'cubic-bezier(0.77, 0, 0.18, 1)';
+    let current   = 0;
+    let busy      = false;
+
+    const mod = (n, m) => ((n % m) + m) % m;
+
+    /* Initial state — active slide visible, rest hidden behind */
+    function park() {
+      slides.forEach((s, i) => {
+        s.style.transition = 'none';
+        s.style.zIndex     = '0';
+        if (i === current) {
+          s.style.transform = 'translateX(0)';
+          s.style.zIndex    = '1';
+        } else {
+          /* park all non-active slides off to the right, out of view */
+          s.style.transform = 'translateX(100%)';
+        }
+      });
+    }
+    park();
+
+    function goTo(rawIndex) {
+      if (busy) return;
+      const index = mod(rawIndex, N);
+      if (index === current) return;
+      busy = true;
+
+      const forward = mod(index - current, N) <= N / 2;
+      const dir     = forward ? 1 : -1;
+
+      const out = slides[current];
+      const inp = slides[index];
+
+      /* Reset parallax smoothly before transition */
+      px = 0; py = 0;
+
+      /* Outgoing stays exactly where it is — acts as the "page underneath" */
+      out.style.transition = 'none';
+      out.style.transform  = 'translateX(0)';
+      out.style.zIndex     = '1';
+
+      /* Snap incoming to its off-screen edge, on top */
+      inp.style.transition = 'none';
+      inp.style.transform  = `translateX(${dir * 100}%)`;
+      inp.style.zIndex     = '2';
+
+      /* Flush so browser registers both positions */
+      inp.getBoundingClientRect();
+
+      /* Only the INCOMING slide animates — slides over the top */
+      inp.style.transition = `transform ${DUR}ms ${EASE_FN}`;
+      inp.style.transform  = 'translateX(0)';
+
+      current = index;
+
+      setTimeout(() => {
+        park();
+        busy = false;
+      }, DUR + 20);
+    }
+
+    /* ══════════════════════════════════════════
+       CURSOR PARALLAX — slides 1 & 2 only
+    ══════════════════════════════════════════ */
+    let mx = 0, my = 0;   /* raw mouse -1…1 */
+    let px = 0, py = 0;   /* lerped parallax offsets */
+
+    document.addEventListener('mousemove', e => {
+      mx = (e.clientX / window.innerWidth  - 0.5) * 2;
+      my = (e.clientY / window.innerHeight - 0.5) * 2;
+    });
+
+    (function parallaxLoop() {
+      px += (mx - px) * 0.055;
+      py += (my - py) * 0.055;
+
+      /* Only move char on slides 0 and 1 (not slide 2 = the dog) */
+      if (current < 2) {
+        const wrap = slides[current].querySelector('.char-wrap');
+        if (wrap) {
+          wrap.style.transform =
+            `translateX(calc(-50% + ${px * 22}px)) translateY(${py * 12}px)`;
+        }
+      }
+
+      requestAnimationFrame(parallaxLoop);
+    })();
+
+    /* ── Wheel ── */
+    let wheelCooldown = false;
+    window.addEventListener('wheel', e => {
+      if (wheelCooldown || busy) return;
+      const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+      if (Math.abs(delta) < 20) return;
+      goTo(current + (delta > 0 ? 1 : -1));
+      wheelCooldown = true;
+      setTimeout(() => { wheelCooldown = false; }, DUR + 150);
+    }, { passive: true });
+
+    /* ── Touch swipe ── */
+    let touchX0 = null;
+    window.addEventListener('touchstart', e => { touchX0 = e.touches[0].clientX; }, { passive: true });
+    window.addEventListener('touchend',   e => {
+      if (touchX0 === null) return;
+      const dx = e.changedTouches[0].clientX - touchX0;
+      if (Math.abs(dx) > 48) goTo(current + (dx < 0 ? 1 : -1));
+      touchX0 = null;
+    }, { passive: true });
+
+    /* ── Keyboard ── */
+    document.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight') goTo(current + 1);
+      if (e.key === 'ArrowLeft')  goTo(current - 1);
+    });
+
+    /* ══════════════════════════════════════════
+       CUSTOM GLOW CURSOR
+       Dot follows mouse exactly.
+       Glow lerps behind it and color adapts to slide.
+    ══════════════════════════════════════════ */
+    const cursorDot  = document.getElementById('cursor-dot');
+    const cursorGlow = document.getElementById('cursor-glow');
+
+    /* Per-slide glow colors */
+    const SLIDE_COLORS = ['#6633FF', '#00C97A', '#00AADD'];
+
+    /* Raw mouse position */
+    let rawX = window.innerWidth  / 2;
+    let rawY = window.innerHeight / 2;
+
+    /* Lerped glow position */
+    let glowX = rawX;
+    let glowY = rawY;
+
+    /* Update cursor dot instantly */
+    document.addEventListener('mousemove', e => {
+      rawX = e.clientX;
+      rawY = e.clientY;
+      cursorDot.style.left = rawX + 'px';
+      cursorDot.style.top  = rawY + 'px';
+    });
+
+    /* Scale dot on interactive elements */
+    document.querySelectorAll('a, button').forEach(el => {
+      el.addEventListener('mouseenter', () => {
+        cursorDot.style.transform  = 'translate(-50%, -50%) scale(2.2)';
+      });
+      el.addEventListener('mouseleave', () => {
+        cursorDot.style.transform  = 'translate(-50%, -50%) scale(1)';
+      });
+    });
+
+    /* Glow follows with lag; color updates when slide changes */
+    let lastSlide = -1;
+    (function glowLoop() {
+      glowX += (rawX - glowX) * 0.07;
+      glowY += (rawY - glowY) * 0.07;
+
+      cursorGlow.style.left = glowX + 'px';
+      cursorGlow.style.top  = glowY + 'px';
+
+      /* Update color when slide changes */
+      if (current !== lastSlide) {
+        const col = SLIDE_COLORS[current] || '#fff';
+        cursorGlow.style.background = `radial-gradient(circle, ${col} 0%, transparent 70%)`;
+        cursorDot.style.background  = col;
+        lastSlide = current;
+      }
+
+      requestAnimationFrame(glowLoop);
+    })();
+  </script>
+
+</body>
+</html>
