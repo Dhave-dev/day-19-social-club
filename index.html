@@ -370,10 +370,12 @@
         z-index: 5;
       }
 
-      /* ── Character — clears header (label + ~3-line desc ≈ 40+96=136px + 32px gap) ── */
+      /* ── Character — centered in space between header and title ── */
       .char-wrap {
-        top: 28%;
-        height: 52%;
+        top: 170px;   /* clears label (16px) + description (~110px) + 44px breathe */
+        height: auto;
+        bottom: calc(106px + 11.5vw * 1.76 + 48px); /* stops above title+date */
+        align-items: center;
       }
 
       /* Button metrics (for spacing calc):
@@ -397,16 +399,23 @@
         font-size: 0.7rem;
       }
 
-      /* ── VIEW button — natural pill width, right-aligned, 16px margins ── */
+      /* ── VIEW button — left-aligned with content, 16px margin ── */
       .view-btn {
-        left:   auto;          /* NOT full width */
-        right:  16px;
+        left:   16px;
+        right:  auto;
         bottom: 16px;
         width:  auto;
         justify-content: center;
         padding: 7px 10px 7px 22px;
         font-size: 0.82rem;
         letter-spacing: 0.18em;
+      }
+
+      /* Image fills the available centered zone */
+      .char-wrap .char-img {
+        height: 100%;
+        max-height: 44vh;
+        width: auto;
       }
 
       .view-arrow { width: 42px; height: 42px; }
