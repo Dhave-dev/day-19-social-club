@@ -318,16 +318,36 @@
     #slide-3 .view-arrow { background: #DCF2FA; }
     #slide-3 .view-arrow svg path { stroke: #1876A0; }
 
-    /* ═══════════════════════════════════════
-       MOBILE — ≤ 768px
-    ═══════════════════════════════════════ */
-    @media (max-width: 768px) {
+    /* ═══════════════════════════════════════════════
+       TABLET — iPad Mini & up to 1024px
+       768px portrait / 1024px landscape
+    ═══════════════════════════════════════════════ */
+    @media (min-width: 768px) and (max-width: 1024px) {
+      .top-left  { top: 28px; left: 32px; font-size: 0.85rem; }
+      .top-right { top: 24px; right: 32px; max-width: 300px; font-size: 0.8rem; }
+
+      .hero-title {
+        font-size: clamp(4rem, 9vw, 7rem);
+        left: 32px;
+        bottom: -4px;
+      }
+      .hero-date  { left: 32px; bottom: calc(9vw * 1.76 + 12px); }
+
+      .view-btn   { bottom: 36px; right: 32px; }
+
+      .char-wrap  { height: 86%; }
+    }
+
+    /* ═══════════════════════════════════════════════
+       MOBILE — ≤ 767px  (375px base)
+    ═══════════════════════════════════════════════ */
+    @media (max-width: 767px) {
 
       /* No custom cursor on touch */
       #cursor-dot, #cursor-glow { display: none; }
       html, body { cursor: auto; }
 
-      /* ── "The social club" label — 16px margin ── */
+      /* ── "The social club" label ── */
       .top-left {
         top: 16px;
         left: 16px;
@@ -335,11 +355,11 @@
         z-index: 5;
       }
 
-      /* ── Body description — visible, below label ── */
+      /* ── Body description — visible below label ── */
       .top-right {
         display: block;
         position: absolute;
-        top: 40px;           /* sits right below "The social club" */
+        top: 40px;
         left: 16px;
         right: 16px;
         text-align: left;
@@ -350,71 +370,64 @@
         z-index: 5;
       }
 
-      /* ── Character — pushed down so it clears the header text ── */
+      /* ── Character — clears header (label + ~3-line desc ≈ 40+96=136px + 32px gap) ── */
       .char-wrap {
-        top: 26%;            /* leaves room for 2-line description */
-        height: 56%;
+        top: 28%;
+        height: 52%;
       }
 
-      /* ── Title — fluid font, 16px left margin ── */
+      /* Button metrics (for spacing calc):
+         height ≈ 58px  |  bottom: 16px
+         button top from screen bottom = 16 + 58 = 74px
+         32px gap above button → title bottom = 74 + 32 = 106px          */
+
+      /* ── Title — fluid, sits 106px from bottom ── */
       .hero-title {
-        font-size: clamp(2.6rem, 12vw, 5rem);
+        font-size: clamp(2.4rem, 11.5vw, 4.5rem);
         left: 16px;
-        /* sits above button: button is 52px tall + 16px bottom + 8px gap = 76px */
-        bottom: 76px;
+        bottom: 106px;
         line-height: 0.88;
         letter-spacing: -0.02em;
       }
 
-      /* ── Date — just above title ── */
+      /* ── Date — above title ── */
       .hero-date {
         left: 16px;
-        /* title = 12vw × 0.88 × 2 lines, +76px button offset, +10px gap */
-        bottom: calc(76px + 12vw * 1.76 + 10px);
+        bottom: calc(106px + 11.5vw * 1.76 + 10px);
         font-size: 0.7rem;
       }
 
-      /* ── VIEW button — full width, 16px margins ── */
+      /* ── VIEW button — natural pill width, right-aligned, 16px margins ── */
       .view-btn {
-        left: 16px;
-        right: 16px;
+        left:   auto;          /* NOT full width */
+        right:  16px;
         bottom: 16px;
-        /* override the right: 48px from desktop */
-        width: auto;
-        justify-content: space-between;
-        padding: 8px 8px 8px 24px;
+        width:  auto;
+        justify-content: center;
+        padding: 7px 10px 7px 22px;
         font-size: 0.82rem;
         letter-spacing: 0.18em;
-        box-sizing: border-box;
       }
 
-      .view-arrow {
-        width: 44px;
-        height: 44px;
-      }
+      .view-arrow { width: 42px; height: 42px; }
       .view-arrow svg { width: 16px; height: 16px; }
 
-      /* ── Slide 3 dog: contained, bottom-anchored ── */
+      /* ── Slide 3 dog ── */
       #slide-3 .char-wrap {
-        top: auto !important;
-        bottom: 76px; /* above button */
+        top:    auto !important;
+        bottom: calc(16px + 58px + 32px); /* button + gap */
       }
       #slide-3 .char-img {
-        height: 45vh;
+        height: 44vh;
         max-width: 85vw;
       }
     }
 
-    /* ── Very small phones (≤ 375px) ── */
+    /* ── 375px and smaller ── */
     @media (max-width: 375px) {
-      .hero-title {
-        font-size: clamp(2.2rem, 11vw, 3rem);
-        bottom: 72px;
-      }
-      .hero-date {
-        bottom: calc(72px + 11vw * 1.76 + 10px);
-      }
-      .top-right { font-size: 0.68rem; }
+      .hero-title  { font-size: clamp(2rem, 11vw, 3rem); }
+      .hero-date   { bottom: calc(106px + 11vw * 1.76 + 10px); }
+      .top-right   { font-size: 0.68rem; }
     }
   </style>
 </head>
