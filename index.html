@@ -317,6 +317,87 @@
     }
     #slide-3 .view-arrow { background: #DCF2FA; }
     #slide-3 .view-arrow svg path { stroke: #1876A0; }
+
+    /* ═══════════════════════════════════════
+       MOBILE — ≤ 768px
+    ═══════════════════════════════════════ */
+    @media (max-width: 768px) {
+
+      /* Hide system cursor glow on touch */
+      #cursor-dot, #cursor-glow { display: none; }
+      html, body { cursor: auto; }
+
+      /* ── Top bar: stacked, no overlap ── */
+      .top-left {
+        top: 20px;
+        left: 20px;
+        font-size: 0.75rem;
+        z-index: 5;
+      }
+
+      /* Description: hide on mobile — too cramped */
+      .top-right { display: none; }
+
+      /* ── Character: slightly smaller, centered ── */
+      .char-wrap {
+        height: 72%;
+        top: 8%;
+      }
+
+      /* ── Title: fluid, never overflow ── */
+      .hero-title {
+        font-size: clamp(2.4rem, 12.5vw, 5.5rem);
+        left: 16px;
+        bottom: -4px;
+        line-height: 0.88;
+        letter-spacing: -0.02em;
+        /* Clip text that would overflow on very narrow screens */
+        max-width: 100vw;
+        overflow: hidden;
+      }
+
+      /* ── Date: sits above title, recalculated ──
+         title height ≈ 12.5vw × 0.88 × 2 lines
+         date sits 10px above that                  */
+      .hero-date {
+        left: 16px;
+        bottom: calc(12.5vw * 1.76 + 14px);
+        font-size: 0.72rem;
+      }
+
+      /* ── VIEW button: bottom-right, scaled down ── */
+      .view-btn {
+        bottom: 28px;
+        right: 16px;
+        padding: 6px 8px 6px 18px;
+        gap: 10px;
+        font-size: 0.78rem;
+        letter-spacing: 0.16em;
+      }
+
+      .view-arrow {
+        width: 40px;
+        height: 40px;
+      }
+
+      .view-arrow svg { width: 15px; height: 15px; }
+
+      /* ── Slide 3 dog: smaller on mobile ── */
+      #slide-3 .char-img {
+        height: 52vh;
+        max-width: 85vw;
+      }
+    }
+
+    /* ── Very small phones ── */
+    @media (max-width: 390px) {
+      .hero-title {
+        font-size: clamp(2rem, 11.5vw, 2.8rem);
+      }
+      .hero-date {
+        bottom: calc(11.5vw * 1.76 + 12px);
+      }
+    }
   </style>
 </head>
 <body>
